@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10172b">
+  <title>Skybound — 横スクロールアクション</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Skybound ホーム">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <span>SKYBOUND</span>
+      </a>
+      <p class="tagline">風を越えて、光の塔へ。</p>
+      <div class="status" aria-live="polite">
+        <span class="status-label">LIFE</span>
+        <span id="lives" class="lives" aria-label="ライフ3">♥ ♥ ♥</span>
+      </div>
+    </header>
+
+    <section class="stage" aria-label="ゲーム画面">
+      <canvas id="game" width="960" height="540" aria-label="横スクロールアクションゲーム">
+        このゲームを遊ぶにはCanvasに対応したブラウザーが必要です。
+      </canvas>
+      <div class="stage-caption">
+        <span id="objective">ゴールの光を目指そう</span>
+        <span id="progress">0 m</span>
+      </div>
+      <div id="message" class="message" role="status" hidden>
+        <div class="message-card">
+          <p class="message-kicker">SKYBOUND</p>
+          <h1 id="message-title">ゴール！</h1>
+          <p id="message-copy">光の塔にたどり着いた！</p>
+          <button id="restart" class="restart-button" type="button">もう一度遊ぶ <span aria-hidden="true">↗</span></button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="controls">
+      <p class="desktop-hint"><kbd>←</kbd><kbd>→</kbd> 移動 <span class="hint-divider">·</span> <kbd>Space</kbd> ジャンプ <span class="hint-divider">·</span> <kbd>Z</kbd> 攻撃</p>
+      <div class="touch-controls" aria-label="タッチ操作">
+        <button class="touch-button move-button" data-key="ArrowLeft" aria-label="左へ移動">←</button>
+        <button class="touch-button move-button" data-key="ArrowRight" aria-label="右へ移動">→</button>
+        <button class="touch-button action-button" data-key="Space" aria-label="ジャンプ">↑</button>
+        <button class="touch-button action-button attack-button" data-key="KeyZ" aria-label="攻撃">✦</button>
+      </div>
+      <p class="credit">小さな冒険のはじまり <span>✦</span></p>
+    </footer>
+  </main>
+</body>
+</html>
