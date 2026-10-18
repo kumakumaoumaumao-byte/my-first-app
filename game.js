@@ -203,36 +203,47 @@ function loseLife() {
 
 function drawBackground() {
   const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-  sky.addColorStop(0, "#273d6b");
-  sky.addColorStop(0.62, "#6576a0");
-  sky.addColorStop(1, "#f0ad8b");
+  sky.addColorStop(0, "#101a38");
+  sky.addColorStop(0.58, "#293f68");
+  sky.addColorStop(1, "#a85e70");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  const sunX = 745 - cameraX * 0.08;
-  const sunGlow = ctx.createRadialGradient(sunX, 132, 8, sunX, 132, 100);
-  sunGlow.addColorStop(0, "rgba(255, 222, 165, 0.32)");
-  sunGlow.addColorStop(1, "rgba(255, 222, 165, 0)");
-  ctx.fillStyle = sunGlow;
-  ctx.fillRect(sunX - 100, 32, 200, 200);
-  ctx.fillStyle = "#ffe3ad";
+  const moonX = 745 - cameraX * 0.08;
+  const moonGlow = ctx.createRadialGradient(moonX, 132, 8, moonX, 132, 122);
+  moonGlow.addColorStop(0, "rgba(167, 224, 255, 0.28)");
+  moonGlow.addColorStop(1, "rgba(167, 224, 255, 0)");
+  ctx.fillStyle = moonGlow;
+  ctx.fillRect(moonX - 122, 10, 244, 244);
+  ctx.fillStyle = "#d9f2ff";
   ctx.beginPath();
-  ctx.arc(sunX, 132, 27, 0, Math.PI * 2);
+  ctx.arc(moonX, 132, 27, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(123, 177, 215, 0.25)";
+  ctx.beginPath();
+  ctx.arc(moonX - 8, 123, 6, 0, Math.PI * 2);
+  ctx.arc(moonX + 9, 140, 4, 0, Math.PI * 2);
   ctx.fill();
 
   for (const star of stars) {
     const x = ((star.x - cameraX * 0.12) % WIDTH + WIDTH) % WIDTH;
     const twinkle = 0.38 + Math.sin(elapsed * 1.7 + star.phase) * 0.22;
     ctx.globalAlpha = twinkle;
-    ctx.fillStyle = "#fff1d1";
+    ctx.fillStyle = "#d9efff";
     ctx.beginPath();
     ctx.arc(x, star.y, star.radius, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.globalAlpha = 1;
 
-  drawRidge("#526388", 355, 0.16, 170, 0.005);
-  drawRidge("#34476d", 412, 0.28, 130, 0.007);
+  drawRidge("#34476d", 355, 0.16, 170, 0.005);
+  drawRidge("#202f51", 412, 0.28, 130, 0.007);
+
+  const mist = ctx.createLinearGradient(0, 350, 0, 458);
+  mist.addColorStop(0, "rgba(173, 125, 166, 0)");
+  mist.addColorStop(1, "rgba(173, 125, 166, 0.13)");
+  ctx.fillStyle = mist;
+  ctx.fillRect(0, 350, WIDTH, 108);
 }
 
 function drawRidge(color, baseline, parallax, height, frequency) {
@@ -255,13 +266,26 @@ function drawPlatforms() {
     const x = platform.x - cameraX;
     if (x > WIDTH || x + platform.width < 0) continue;
     const depth = platform.y >= 450 ? HEIGHT - platform.y : 14;
-    ctx.fillStyle = "#273850";
+    const stone = ctx.createLinearGradient(0, platform.y, 0, platform.y + depth);
+    stone.addColorStop(0, "#283958");
+    stone.addColorStop(1, "#17243d");
+    ctx.fillStyle = stone;
     ctx.fillRect(x, platform.y, platform.width, depth);
-    ctx.fillStyle = "#81c3ad";
-    ctx.fillRect(x, platform.y, platform.width, 7);
-    ctx.fillStyle = "rgba(209, 226, 177, 0.46)";
-    for (let pebble = 0; platform.y >= 450 && pebble < platform.width; pebble += 29) {
-      ctx.fillRect(x + pebble + 8, platform.y + 20 + (pebble % 3) * 17, 3, 3);
+    ctx.fillStyle = "#75e0d0";
+    ctx.fillRect(x, platform.y, platform.width, 4);
+    ctx.fillStyle = "rgba(180, 255, 237, 0.52)";
+    ctx.fillRect(x, platform.y + 4, platform.width, 2);
+    ctx.fillStyle = "rgba(7, 17, 37, 0.42)";
+    ctx.fillRect(x, platform.y + 6, platform.width, 2);
+    ctx.fillStyle = "rgba(151, 185, 219, 0.2)";
+    for (let stone = 0; platform.y >= 450 && stone < platform.width; stone += 58) {
+      const detailX = x + stone + 13;
+      ctx.fillRect(detailX, platform.y + 19 + (stone % 3) * 13, 20, 2);
+      ctx.fillRect(detailX + 7, platform.y + 25 + (stone % 3) * 13, 2, 5);
+    }
+    if (platform.y < 450) {
+      ctx.fillStyle = "rgba(165, 233, 231, 0.3)";
+      ctx.fillRect(x + 8, platform.y + 10, Math.max(0, platform.width - 16), 1);
     }
   }
 }
@@ -294,31 +318,53 @@ function drawPlayer() {
   const x = player.x - cameraX;
   const y = player.y;
 
+  ctx.fillStyle = "rgba(8, 16, 35, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(x + 16, y + 48, 16, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   if (player.attackTime > 0) {
-    ctx.strokeStyle = "rgba(255, 226, 147, 0.88)";
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(127, 245, 231, 0.92)";
+    ctx.lineWidth = 5;
+    ctx.shadowColor = "#69e8df";
+    ctx.shadowBlur = 16;
     ctx.beginPath();
     const centerX = x + (player.facing > 0 ? 43 : -11);
     ctx.arc(centerX, y + 27, 25, player.facing > 0 ? -1.05 : Math.PI + 0.05, player.facing > 0 ? 1.05 : Math.PI * 2 - 0.05);
     ctx.stroke();
+    ctx.shadowBlur = 0;
   }
 
   const run = Math.abs(player.vx) > 0 ? Math.sin(elapsed * 17) * 3 : 0;
-  ctx.fillStyle = "#24314f";
+  const body = ctx.createLinearGradient(x + 4, y + 17, x + 29, y + 43);
+  body.addColorStop(0, "#5678bd");
+  body.addColorStop(1, "#263b71");
+  ctx.fillStyle = body;
   ctx.fillRect(x + 4, y + 17, 25, 26);
-  ctx.fillStyle = "#f0bd82";
+  ctx.fillStyle = "#18294e";
+  ctx.fillRect(x + 3, y + 20, 4, 21);
+  ctx.fillStyle = "#91f1df";
+  ctx.fillRect(x + 5, y + 20, 27, 4);
+  ctx.fillStyle = "#d7efff";
+  ctx.fillRect(x + 8, y + 25, 18, 2);
+  ctx.fillStyle = "#e9ad78";
   ctx.fillRect(x + 8, y + 3, 19, 18);
-  ctx.fillStyle = "#493d54";
+  ctx.fillStyle = "#344066";
   ctx.fillRect(x + 6, y, 23, 8);
-  ctx.fillStyle = "#f0bd82";
+  ctx.fillStyle = "#53648f";
+  ctx.fillRect(x + 10, y - 3, 16, 4);
+  ctx.fillStyle = "#e9ad78";
   ctx.fillRect(x + 2, y + 7, 7, 8);
-  ctx.fillStyle = "#344366";
+  ctx.fillStyle = "#20335f";
   ctx.fillRect(x + 5, y + 40, 9, 8 + run);
   ctx.fillRect(x + 19, y + 40, 9, 8 - run);
-  ctx.fillStyle = "#ffdf98";
+  ctx.fillStyle = "#85e9df";
+  ctx.fillRect(x + 4, y + 46 + run, 12, 2);
+  ctx.fillRect(x + 18, y + 46 - run, 12, 2);
+  ctx.fillStyle = "#f7f4d7";
   ctx.fillRect(x + (player.facing > 0 ? 21 : 10), y + 9, 3, 3);
-  ctx.fillStyle = "#88c4b0";
-  ctx.fillRect(x + 2, y + 20, 30, 5);
+  ctx.fillStyle = "#f3a974";
+  ctx.fillRect(x + (player.facing > 0 ? 24 : 8), y + 14, 4, 2);
 }
 
 function drawEnemies() {
@@ -326,16 +372,32 @@ function drawEnemies() {
     if (!enemy.alive) continue;
     const x = enemy.x - cameraX;
     const bounce = Math.sin(elapsed * 5 + enemy.phase) * 2;
-    ctx.fillStyle = "#38334e";
+    ctx.fillStyle = "rgba(8, 16, 35, 0.32)";
+    ctx.beginPath();
+    ctx.ellipse(x + 16, enemy.y + 40, 17, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = "rgba(191, 113, 255, 0.48)";
+    ctx.shadowBlur = 14;
+    const enemyBody = ctx.createLinearGradient(x, enemy.y + bounce, x + 32, enemy.y + 40 + bounce);
+    enemyBody.addColorStop(0, "#9a69d4");
+    enemyBody.addColorStop(1, "#493c86");
+    ctx.fillStyle = enemyBody;
     ctx.beginPath();
     ctx.roundRect(x, enemy.y + bounce, enemy.width, enemy.height, [12, 12, 5, 5]);
     ctx.fill();
-    ctx.fillStyle = "#f28c8e";
-    ctx.fillRect(x + 7, enemy.y + 13 + bounce, 5, 4);
-    ctx.fillRect(x + 20, enemy.y + 13 + bounce, 5, 4);
-    ctx.fillStyle = "#f8c69a";
-    ctx.fillRect(x + 10, enemy.y + 29 + bounce, 12, 3);
-    ctx.fillStyle = "#7b6685";
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(221, 190, 255, 0.7)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = "#fff0c2";
+    ctx.fillRect(x + 7, enemy.y + 13 + bounce, 5, 5);
+    ctx.fillRect(x + 20, enemy.y + 13 + bounce, 5, 5);
+    ctx.fillStyle = "#f48da9";
+    ctx.fillRect(x + 9, enemy.y + 15 + bounce, 3, 3);
+    ctx.fillRect(x + 22, enemy.y + 15 + bounce, 3, 3);
+    ctx.fillStyle = "#372f68";
+    ctx.fillRect(x + 11, enemy.y + 29 + bounce, 10, 3);
+    ctx.fillStyle = "#b897e8";
     ctx.fillRect(x + 4, enemy.y + 37 + bounce, 9, 3);
     ctx.fillRect(x + 20, enemy.y + 37 + bounce, 9, 3);
   }

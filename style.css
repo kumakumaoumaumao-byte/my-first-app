@@ -21,8 +21,9 @@ body {
   place-items: center;
   padding: 28px 24px;
   background:
-    radial-gradient(ellipse at 50% 0%, rgb(43 62 106 / 35%), transparent 58%),
-    #10172b;
+    radial-gradient(ellipse at 50% 0%, rgb(61 91 150 / 24%), transparent 58%),
+    radial-gradient(ellipse at 100% 100%, rgb(112 57 104 / 12%), transparent 42%),
+    #0c1328;
 }
 
 button {
@@ -92,10 +93,14 @@ button {
 .stage {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgb(190 206 244 / 17%);
+  border: 1px solid rgb(153 226 238 / 35%);
   border-radius: 12px;
-  background: #273c68;
-  box-shadow: 0 24px 80px rgb(0 0 0 / 28%), 0 3px 10px rgb(0 0 0 / 16%);
+  background: #172747;
+  box-shadow:
+    0 0 0 1px rgb(16 26 51 / 90%),
+    0 0 28px rgb(89 185 210 / 12%),
+    0 24px 80px rgb(0 0 0 / 42%),
+    0 3px 10px rgb(0 0 0 / 22%);
 }
 
 canvas {
