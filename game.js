@@ -11,6 +11,7 @@ const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 const WORLD_WIDTH = 3720;
 const GRAVITY = 1750;
+const FIREBALL_SPEED = 430;
 const platforms = [
   { x: 0, y: 458, width: 690 },
   { x: 790, y: 458, width: 560 },
@@ -50,6 +51,7 @@ const petals = Array.from({ length: 18 }, (_, index) => ({
 
 let player;
 let enemies;
+let fireballs;
 let cameraX = 0;
 let lastTime = 0;
 let elapsed = 0;
@@ -67,9 +69,9 @@ function resetGame() {
     grounded: false,
     lives: 3,
     invulnerable: 0,
-    attackTime: 0,
-    hitEnemies: new Set(),
+    attackCooldown: 0,
   };
+  fireballs = [];
   enemies = enemyStarts.map((enemy, index) => ({
     ...enemy,
     y: 418,
@@ -102,9 +104,14 @@ function showMessage(title, copy) {
 }
 
 function startAttack() {
-  if (player.attackTime <= 0) {
-    player.attackTime = 0.2;
-    player.hitEnemies.clear();
+  if (player.attackCooldown <= 0) {
+    player.attackCooldown = 0.2;
+    fireballs.push({
+      x: player.x + (player.facing > 0 ? player.width + 12 : -12),
+      y: player.y + player.height / 2,
+      vx: player.facing * FIREBALL_SPEED,
+      life: 1.6,
+    });
   }
 }
 
@@ -151,7 +158,7 @@ function update(delta) {
 
   if (player.y > HEIGHT + 120) loseLife();
   player.invulnerable = Math.max(0, player.invulnerable - delta);
-  player.attackTime = Math.max(0, player.attackTime - delta);
+  player.attackCooldown = Math.max(0, player.attackCooldown - delta);
 
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
@@ -159,17 +166,6 @@ function update(delta) {
     if (enemy.x < enemy.min || enemy.x + enemy.width > enemy.max) {
       enemy.speed *= -1;
       enemy.x = Math.max(enemy.min, Math.min(enemy.max - enemy.width, enemy.x));
-    }
-
-    const attackX = player.facing > 0 ? player.x + player.width - 2 : player.x - 40;
-    const attackHitsEnemy = player.attackTime > 0
-      && attackX < enemy.x + enemy.width
-      && attackX + 42 > enemy.x
-      && player.y + 8 < enemy.y + enemy.height
-      && player.y + player.height - 4 > enemy.y;
-    if (attackHitsEnemy && !player.hitEnemies.has(enemy)) {
-      enemy.alive = false;
-      player.hitEnemies.add(enemy);
     }
 
     const overlapsEnemy = enemy.alive
@@ -183,6 +179,24 @@ function update(delta) {
       player.vy = -300;
     }
   }
+
+  for (const fireball of fireballs) {
+    fireball.x += fireball.vx * delta;
+    fireball.life -= delta;
+    for (const enemy of enemies) {
+      const overlapsEnemy = enemy.alive
+        && fireball.x - 11 < enemy.x + enemy.width
+        && fireball.x + 11 > enemy.x
+        && fireball.y - 11 < enemy.y + enemy.height
+        && fireball.y + 11 > enemy.y;
+      if (overlapsEnemy) {
+        enemy.alive = false;
+        fireball.life = 0;
+        break;
+      }
+    }
+  }
+  fireballs = fireballs.filter((fireball) => fireball.life > 0 && fireball.x >= 0 && fireball.x <= WORLD_WIDTH);
 
   const targetCamera = Math.max(0, Math.min(WORLD_WIDTH - WIDTH, player.x - WIDTH * 0.38));
   cameraX += (targetCamera - cameraX) * Math.min(1, delta * 5);
@@ -382,18 +396,6 @@ function drawPlayer() {
   ctx.ellipse(x + 16, y + 48, 16, 4, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  if (player.attackTime > 0) {
-    ctx.strokeStyle = "rgba(255, 230, 185, 0.95)";
-    ctx.lineWidth = 4;
-    ctx.shadowColor = "#f4ad75";
-    ctx.shadowBlur = 12;
-    ctx.beginPath();
-    const centerX = x + (player.facing > 0 ? 43 : -11);
-    ctx.arc(centerX, y + 27, 25, player.facing > 0 ? -1.05 : Math.PI + 0.05, player.facing > 0 ? 1.05 : Math.PI * 2 - 0.05);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-  }
-
   const run = Math.abs(player.vx) > 0 ? Math.sin(elapsed * 17) * 3 : 0;
   ctx.fillStyle = "#30354c";
   ctx.fillRect(x + 4, y + 17, 25, 26);
@@ -416,6 +418,38 @@ function drawPlayer() {
   ctx.fillRect(x + 18, y + 46 - run, 12, 2);
   ctx.fillStyle = "#3e354a";
   ctx.fillRect(x + (player.facing > 0 ? 21 : 10), y + 9, 3, 3);
+}
+
+function drawFireballs() {
+  for (const fireball of fireballs) {
+    const x = fireball.x - cameraX;
+    const y = fireball.y;
+    const flicker = Math.sin(elapsed * 36 + fireball.x) * 2;
+    const direction = Math.sign(fireball.vx);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(direction, 1);
+    ctx.shadowColor = "#ff6b32";
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = "#f25b32";
+    ctx.beginPath();
+    ctx.moveTo(-9, -6);
+    ctx.quadraticCurveTo(-19, -13 - flicker, -25, -3);
+    ctx.quadraticCurveTo(-19, 0, -25, 5 + flicker);
+    ctx.quadraticCurveTo(-17, 13, -8, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#ff9e3d";
+    ctx.beginPath();
+    ctx.arc(0, 0, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#fff0a6";
+    ctx.beginPath();
+    ctx.arc(2, -2, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 }
 
 function drawEnemies() {
@@ -458,6 +492,7 @@ function draw() {
   drawGoal();
   drawEnemies();
   drawPlayer();
+  drawFireballs();
 }
 
 function frame(timestamp) {
